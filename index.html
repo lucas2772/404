@@ -1,0 +1,225 @@
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Rubik+Maze&display=swap" rel="stylesheet">
+
+        <style>
+            * {
+                padding: 0px;
+                margin: 0px;
+            }
+
+            body {
+                background: black;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                position: relative;
+            }
+
+            #main-container {
+                display: flex;
+                align-items: center;
+                gap: 50px;
+            }
+
+            #error-container {
+                text-align: left;
+            }
+
+            #error-404 {
+                font-family: 'Rubik Maze', system-ui;
+                font-size: 80px;
+                color: #ff4444;
+                margin-bottom: 20px;
+                text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            }
+
+            #console-output {
+                font-family: Consolas, monospace;
+                font-size: 14px;
+                color: #00ff00;
+                text-align: left;
+                max-width: 600px;
+                line-height: 1.6;
+            }
+
+            .console-line {
+                opacity: 0;
+                animation: fadeIn 0.3s forwards;
+            }
+
+            @keyframes fadeIn {
+                to {
+                    opacity: 1;
+                }
+            }
+
+            .cursor {
+                animation: blink 1s infinite;
+            }
+
+            @keyframes blink {
+                0%, 50% { opacity: 1; }
+                51%, 100% { opacity: 0; }
+            }
+
+            .cloud {
+                color: #b8b8b8;
+            }
+
+            .flare {
+                color: orange;
+            }
+
+            #copyright {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                font-family: Consolas, monospace;
+                font-size: 12px;
+                color: #888888;
+            }
+
+            /* Mobile responsive styles */
+            @media (max-width: 768px) {
+                body {
+                    align-items: flex-start;
+                    overflow-y: auto;
+                }
+
+                #main-container {
+                    flex-direction: column;
+                    gap: 30px;
+                    padding: 20px;
+                }
+
+                #error-container {
+                    text-align: center;
+                    width: 100%;
+                }
+
+                #error-404 {
+                    font-size: 60px;
+                }
+
+                #console-output {
+                    text-align: left;
+                    font-size: 12px;
+                    max-width: 100%;
+                }
+
+                #copyright {
+                    font-size: 10px;
+                    bottom: 10px;
+                    right: 10px;
+                }
+
+                canvas {
+                    max-width: 100%;
+                    height: auto;
+                }
+            }
+        </style>
+
+        <title>Biscuit.js</title>
+    </head>
+    <body>
+        <div id="main-container">
+            <canvas width="500" height="500" id="a"></canvas>
+
+            <div id="error-container">
+                <div id="error-404"></div>
+                <div id="console-output"></div>
+            </div>
+        </div>
+
+        <div id="copyright">© L.J.J. Groenendijk, All Rights Reserved.</div>
+
+        <script src="./js/unminified/lib.js"></script>
+
+        <script src="./js/unminified/index.js"></script>
+
+        <script>
+            const messages = [
+                '> System diagnostic initiated...',
+                '> Analyzing connection status...',
+                '> ERROR: Unable to reach destination',
+                '> ',
+                '> Possible causes:',
+                '> - Server is under maintenance',
+                { text: '> - <span class="cloud">Cloud</span><span class="flare">flare</span> protection is activated', html: true },
+                '> - Network connectivity issue',
+                '> - DNS resolution failure',
+                '> - Your internet connection may be unstable',
+                '> ',
+                '> Please try again later or contact support_'
+            ];
+
+            const error404Element = document.getElementById('error-404');
+            const consoleElement = document.getElementById('console-output');
+            
+            let messageIndex = 0;
+            let charIndex = 0;
+            let currentMessage = '';
+
+            // Animate 404 text with custom font
+            setTimeout(() => {
+                error404Element.textContent = '404';
+            }, 500);
+
+            // Start console animation after 404 appears
+            setTimeout(() => {
+                const interval = setInterval(() => {
+                    if (messageIndex < messages.length) {
+                        const message = typeof messages[messageIndex] === 'string' 
+                            ? messages[messageIndex] 
+                            : messages[messageIndex].text;
+                        const isHTML = typeof messages[messageIndex] === 'object' && messages[messageIndex].html;
+
+                        if (charIndex < message.length) {
+                            currentMessage += message[charIndex];
+                            const lines = consoleElement.querySelectorAll('.console-line');
+                            if (lines.length === 0 || lines[lines.length - 1].classList.contains('complete')) {
+                                const newLine = document.createElement('div');
+                                newLine.className = 'console-line';
+                                consoleElement.appendChild(newLine);
+                            }
+                            const currentLine = consoleElement.querySelector('.console-line:last-child');
+                            if (isHTML) {
+                                currentLine.innerHTML = currentMessage;
+                            } else {
+                                currentLine.textContent = currentMessage;
+                            }
+                            charIndex++;
+                        } else {
+                            consoleElement.querySelector('.console-line:last-child').classList.add('complete');
+                            messageIndex++;
+                            charIndex = 0;
+                            currentMessage = '';
+                            
+                            // Auto-scroll on mobile to show new content
+                            if (window.innerWidth <= 768) {
+                                window.scrollTo({
+                                    top: document.body.scrollHeight,
+                                    behavior: 'smooth'
+                                });
+                            }
+                        }
+                    } else {
+                        clearInterval(interval);
+                        const cursor = document.createElement('span');
+                        cursor.className = 'cursor';
+                        cursor.textContent = '█';
+                        consoleElement.appendChild(cursor);
+                    }
+                }, 50);
+            }, 1000);
+        </script>
+    </body>
+</html>
